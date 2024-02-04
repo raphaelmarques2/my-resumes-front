@@ -1,0 +1,29 @@
+---
+import { ViewTransitions } from "astro:transitions";
+import { SetSharedAuth } from "../components/common/SetSharedAuth";
+import TheHeader from "../components/header/TheHeader.astro";
+import "../styles/main.css";
+import "../styles/pdf.css";
+
+const { token, user } = Astro.locals;
+---
+
+<html lang="en" transition:animate="none">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <script
+      src="https://kit.fontawesome.com/0848db7773.js"
+      crossorigin="anonymous"></script>
+
+    <title>My Resumes</title>
+    <!-- <ViewTransitions /> -->
+  </head>
+  <body class="min-h-screen relative flex flex-col">
+    <SetSharedAuth token={token} user={user} client:load />
+    <TheHeader />
+    <slot />
+  </body>
+</html>

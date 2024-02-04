@@ -1,0 +1,85 @@
+---
+import type { Resume } from "../services/types/Resume";
+import MainLayout from "./MainLayout.astro";
+
+export interface Props {
+  resume: Resume;
+}
+
+const { resume } = Astro.props;
+const id = resume.id;
+
+const steps = [
+  {
+    label: "Resume",
+    icon: "fa fa-pencil",
+    path: "/resume",
+    pathMatch: new RegExp("/resumes/[a-z0-9-]+/resume"),
+    active: false,
+    done: false,
+  },
+  {
+    label: "Profile",
+    icon: "fa fa-pencil",
+    path: "/profile",
+    pathMatch: new RegExp("/resumes/[a-z0-9-]+/profile"),
+    active: false,
+    done: false,
+  },
+  {
+    label: "Education",
+    icon: "fa fa-pencil",
+    path: "/educations",
+    pathMatch: new RegExp("/resumes/[a-z0-9-]+/educations(/[a-z0-9-]+)?"),
+    active: false,
+    done: false,
+  },
+  {
+    label: "Experiences",
+    icon: "fa fa-pencil",
+    path: "/experiences",
+    pathMatch: new RegExp("/resumes/[a-z0-9-]+/experiences(/[a-z0-9-]+)?"),
+    active: false,
+    done: false,
+  },
+  {
+    label: "Review",
+    icon: "fa fa-pencil",
+    path: "/review",
+    pathMatch: new RegExp("/resumes/[a-z0-9-]+/review"),
+    active: false,
+    done: false,
+  },
+];
+
+function updateStepsStates() {
+  const currentStepIndex = steps.findIndex((step) =>
+    Astro.url.pathname.match(step.pathMatch)
+  );
+  if (currentStepIndex >= 0) {
+    steps.forEach((step, i) => {
+      step.active = i <= currentStepIndex;
+      step.done = i < currentStepIndex;
+    });
+  }
+}
+updateStepsStates();
+---
+
+<MainLayout>
+  <main class="flex flex-col items-center pb-4">
+    <h1>{resume.name}</h1>
+
+    <ul class="steps steps-horizontal my-4">
+      {
+        steps.map((step) => (
+          <li class={`step ${step.active ? "step-primary" : ""}`}>
+            <a href={`/resumes/${id}${step.path}`}>{step.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <slot />
+  </main>
+</MainLayout>

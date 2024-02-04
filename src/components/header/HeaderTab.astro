@@ -1,0 +1,27 @@
+---
+interface Props {
+  active: boolean;
+  href: string;
+}
+const { active, href } = Astro.props;
+---
+
+<a class={`${active ? "activeTab" : "inactiveTab"}`} href={href}>
+  <slot />
+  <div class="w-full h-[2px]">
+    {
+      active && (
+        <div
+          transition:name="header-tab"
+          class="w-full h-full rounded-full bg-primary"
+        />
+      )
+    }
+  </div>
+</a>
+
+<style>
+  .activeTab {
+    @apply font-bold;
+  }
+</style>

@@ -1,0 +1,101 @@
+---
+import { z } from "astro/zod";
+import { TextInput } from "../../components/common/TextInput";
+import MainLayout from "../../layout/MainLayout.astro";
+import { Backend } from "../../services/backend";
+
+const { token } = Astro.params;
+if (!token) return Astro.redirect("/404");
+
+let error = "";
+let passwordUpdated = false;
+
+const backend = new Backend();
+const user = await backend.getRequestPasswordReset(token);
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const entries = Object.fromEntries(formData.entries());
+
+  const schema = z
+    .object({
+      newPassword: z
+        .string({ required_error: "New Password is required" })
+        .min(6, "All passwords must have at least 6 characters"),
+      confirmNewPassword: z
+        .string({ required_error: "Confirm New Password is required" })
+        .min(6, "All passwords must have at least 6 characters"),
+    })
+    .refine(
+      (data) => {
+        return data.newPassword === data.confirmNewPassword;
+      },
+      { message: "Passwords do not match", path: ["confirmNewPassword"] }
+    );
+
+  const payload = schema.safeParse(entries);
+
+  if (payload.success) {
+    try {
+      await backend.resetPasswordUsingToken(token, payload.data.newPassword);
+      passwordUpdated = true;
+    } catch (err: any) {
+      if (err.message) {
+        error = err.message;
+      } else {
+        console.error(err);
+        error = "Something went wrong. Please try again later.";
+      }
+    }
+  } else {
+    error = payload.error.issues[0].message;
+  }
+}
+---
+
+<MainLayout>
+  <div class="flex-1 flex items-center justify-center">
+    <form class="flex flex-col items-center space-y-2" method="POST">
+      <div class="text-lg font-semibold text-center">Update Password</div>
+
+      <p class="text-sm text-center">Hi {user.name}</p>
+      <p class="text-sm text-center">
+        Type the new password for <span class="font-semibold">{user.email}</span
+        >.
+      </p>
+
+      <TextInput
+        label="New password"
+        name="newPassword"
+        type="password"
+        placeholder="******"
+        required
+      />
+
+      <TextInput
+        label="Confirm new password"
+        name="confirmNewPassword"
+        type="password"
+        placeholder="******"
+        required
+      />
+
+      <div class="text-error text-sm my-2">{error}</div>
+      <button type="submit" class="btn btn-primary btn-wide">Update</button>
+    </form>
+
+    <dialog class="modal" open={passwordUpdated}>
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Password updated!</h3>
+        <p class="py-4">
+          Your password is updated. Make login using your new password.
+        </p>
+        <div class="modal-action">
+          <form method="dialog">
+            <a href="/login" class="btn btn-primary">Go to Login page</a>
+          </form>
+        </div>
+      </div>
+    </dialog>
+  </div>
+</MainLayout>

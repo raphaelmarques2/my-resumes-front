@@ -1,0 +1,27 @@
+---
+import { EditExperience } from "../../../../components/experience/EditExperience";
+import { SetSharedExperiences } from "../../../../components/experience/SetSharedExperiences";
+import PdfPreviewBadge from "../../../../components/pdf/PdfPreviewBadge.astro";
+import { ResumePdfPreview } from "../../../../components/pdf/ResumePdfPreview";
+import ResumeLayout from "../../../../layout/ResumeLayout.astro";
+import { Backend } from "../../../../services/backend";
+
+const { id, experienceId } = Astro.params;
+if (!id || !experienceId) return Astro.redirect("/404");
+
+const backend = new Backend(Astro.locals.token);
+const resume = await backend.getResume(id);
+const experience = await backend.getExperience(experienceId);
+---
+
+<SetSharedExperiences experiences={[experience]} client:load />
+
+<ResumeLayout resume={resume}>
+  <div class="edit-resume-boxes">
+    <EditExperience resumeId={id} client:load />
+    <div class="w-80 form-card relative">
+      <PdfPreviewBadge />
+      <ResumePdfPreview previewType="experience" client:load />
+    </div>
+  </div>
+</ResumeLayout>

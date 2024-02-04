@@ -1,0 +1,62 @@
+---
+import { SetSharedEducations } from "../../../components/education/SetSharedEducations";
+import { SetSharedExperiences } from "../../../components/experience/SetSharedExperiences";
+import { ResumePdf } from "../../../components/pdf/ResumePdf";
+import { ResumePdfPreview } from "../../../components/pdf/ResumePdfPreview";
+import { SetSharedProfile } from "../../../components/profile/SetSharedProfile";
+import { SetSharedResume } from "../../../components/resume/SetSharedResume";
+import ResumeLayout from "../../../layout/ResumeLayout.astro";
+import { Backend } from "../../../services/backend";
+import { sortEducationsByNewestFirst } from "../../../services/types/Education";
+import { sortExperiencesByNewestFirst } from "../../../services/types/Experience";
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect("/404");
+
+const backend = new Backend(Astro.locals.token);
+const resume = await backend.getResume(id);
+const profile = await backend.getUserProfile();
+const educations = await backend.listUserEducations();
+const experiences = await backend.listUserExperiences();
+
+const filteredEducations = educations.filter((education) =>
+  resume.educations.includes(education.id)
+);
+const filteredExperiences = experiences.filter((experience) =>
+  resume.experiences.includes(experience.id)
+);
+
+sortEducationsByNewestFirst(filteredEducations);
+sortExperiencesByNewestFirst(filteredExperiences);
+---
+
+<SetSharedResume resume={resume} client:load />
+<SetSharedProfile profile={profile} client:load />
+<SetSharedEducations educations={filteredEducations} client:load />
+<SetSharedExperiences experiences={filteredExperiences} client:load />
+
+<ResumeLayout resume={resume}>
+  <div>
+    <h1 class="text-center mb-4">Review</h1>
+    <div class="flex flex-col items-center space-y-4">
+      <a class="btn btn-primary btn-wide" href="/resumes">
+        Go back to my resumes
+      </a>
+
+      <div class="max-w-sm md:max-w-lg form-card relative">
+        <ResumePdfPreview previewType="all" client:load />
+      </div>
+
+      <div class="flex justify-center mt-4">
+        <ResumePdf
+          resume={resume}
+          profile={profile}
+          educations={filteredEducations}
+          experiences={filteredExperiences}
+          download={true}
+          client:only
+        />
+      </div>
+    </div>
+  </div>
+</ResumeLayout>

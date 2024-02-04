@@ -1,0 +1,31 @@
+---
+import { EditEducationList } from "../../../components/education/EditEducationList";
+import { SetSharedEducations } from "../../../components/education/SetSharedEducations.tsx";
+import PdfPreviewBadge from "../../../components/pdf/PdfPreviewBadge.astro";
+import { ResumePdfPreview } from "../../../components/pdf/ResumePdfPreview.tsx";
+import { SetSharedResume } from "../../../components/resume/SetSharedResume";
+import ResumeLayout from "../../../layout/ResumeLayout.astro";
+import { Backend } from "../../../services/backend";
+import { sortEducationsByNewestFirst } from "../../../services/types/Education";
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect("/404");
+
+const backend = new Backend(Astro.locals.token);
+const resume = await backend.getResume(id);
+const educations = await backend.listUserEducations();
+sortEducationsByNewestFirst(educations);
+---
+
+<SetSharedResume resume={resume} client:load />
+<SetSharedEducations educations={educations} client:load />
+
+<ResumeLayout resume={resume}>
+  <div class="edit-resume-boxes">
+    <EditEducationList resumeId={id} client:load />
+    <div class="w-80 form-card relative">
+      <PdfPreviewBadge />
+      <ResumePdfPreview previewType="education" filterFromResume client:load />
+    </div>
+  </div>
+</ResumeLayout>
