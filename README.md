@@ -13,6 +13,7 @@ These are the main technologies used on this project:
 - Nanostores
 - Tailwind CSS
 - DaisyUI
+- Vercel (Deployed with GitHub Actions)
 
 ## Running the app
 
